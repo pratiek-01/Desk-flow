@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-title">My Dashboard</div>
+<div class="page-subtitle">View your assigned assets and raise new requests</div>
+
+<div class="card">
+    <h3>🖥️ My Assigned Assets</h3>
+    {% if my_assets %}
+        <table>
+            <tr><th>Name</th><th>Type</th><th>Status</th></tr>
+            {% for asset in my_assets %}
+            <tr>
+                <td>{{ asset.name }}</td>
+                <td>{{ asset.asset_type }}</td>
+                <td><span class="badge badge-assigned">{{ asset.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="empty-state">No assets assigned to you yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>➕ Raise a New Request</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>{{ form.asset_type.label }}</label>
+            {{ form.asset_type }}
+        </div>
+        <div class="form-group">
+            <label>{{ form.reason.label }}</label>
+            {{ form.reason }}
+        </div>
+        <button type="submit" class="btn">Submit Request</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>📑 My Requests</h3>
+    {% if my_tickets %}
+        <table>
+            <tr><th>Asset Type</th><th>Reason</th><th>Status</th><th>Date</th></tr>
+            {% for ticket in my_tickets %}
+            <tr>
+                <td>{{ ticket.asset_type }}</td>
+                <td>{{ ticket.reason }}</td>
+                <td>
+                    {% if ticket.status == "Pending" %}
+                        <span class="badge badge-pending">Pending</span>
+                    {% elif ticket.status == "Approved" %}
+                        <span class="badge badge-approved">Approved</span>
+                    {% else %}
+                        <span class="badge badge-rejected">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>{{ ticket.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="empty-state">You haven't raised any requests yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

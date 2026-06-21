@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-title">Admin Dashboard</div>
+<div class="page-subtitle">Review and manage all employee requests</div>
+
+<div class="card">
+    <form method="get" class="filter-bar">
+        <div class="form-group">
+            <label>Search by Employee</label>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="e.g. rahul">
+        </div>
+        <div class="form-group">
+            <label>Filter by Status</label>
+            <select name="status">
+                <option value="">All</option>
+                <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+                <option value="Approved" {% if status_filter == "Approved" %}selected{% endif %}>Approved</option>
+                <option value="Rejected" {% if status_filter == "Rejected" %}selected{% endif %}>Rejected</option>
+            </select>
+        </div>
+        <button type="submit" class="btn">Apply</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>📋 All Requests</h3>
+    {% if page_obj %}
+        <table>
+            <tr>
+                <th>Employee</th><th>Asset Type</th><th>Reason</th><th>Status</th><th>Date</th><th>Action</th>
+            </tr>
+            {% for ticket in page_obj %}
+            <tr>
+                <td>{{ ticket.user.username }}</td>
+                <td>{{ ticket.asset_type }}</td>
+                <td>{{ ticket.reason }}</td>
+                <td>
+                    {% if ticket.status == "Pending" %}
+                        <span class="badge badge-pending">Pending</span>
+                    {% elif ticket.status == "Approved" %}
+                        <span class="badge badge-approved">Approved</span>
+                    {% else %}
+                        <span class="badge badge-rejected">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>{{ ticket.created_at|date:"d M Y" }}</td>
+                <td>
+                    {% if ticket.status == "Pending" %}
+                    <form method="post" action="{% url 'approve_ticket' ticket.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button class="btn btn-approve btn-small" type="submit">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'reject_ticket' ticket.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button class="btn btn-reject btn-small" type="submit">Reject</button>
+                    </form>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">Prev</a>
+            {% endif %}
+            <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">Next</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="empty-state">No requests found.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
